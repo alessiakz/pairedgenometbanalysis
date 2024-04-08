@@ -119,9 +119,8 @@ heatmap_50_uninfected <- data_clean %>%
   xlab("Uninfected")
 
 heatmap <- heatmap_50_infected + heatmap_50_uninfected + 
-  plot_annotation("FPKM Gene Expression by Infected and Uninfected TB Groups (n=44 samples)",
+  plot_annotation("Gene Expression in Macrophages by Infected and Uninfected TB Groups (n=44 samples)",
                   theme=theme(plot.title=element_text(size=18, hjust=0.5)))
 
 #saving plots
 ggsave(heatmap, filename = here::here("output/heatmap.png"), width = 15, height = 9)
-# ggsave(plot, filename="", width= 10, height = 8)

@@ -2,7 +2,7 @@
 
 # Introduction
 
-This is an introductory exploration info gene expression data 
+This is an introductory exploratory info gene expression data analysis. 
 
 # Methods
 
