@@ -30,5 +30,5 @@ data_merged <- data_long %>%
 #export dataframe
 saveRDS(
   data_merged,
-  file = here::here("output/data_merged.rds"))
+  file = here::here("data/data_merged.rds"))
 
