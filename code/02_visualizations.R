@@ -4,28 +4,40 @@ here::i_am("code/02_visualizations.R")
 #load libraries
 library(tidyverse) #used for data manipulation and cleaning
 library(ggplot2) #visualizations
+library(car) #for qqplot and density plots
+library(patchwork) #put plots together
+library(RColorBrewer) #color palettes
 
 #load data
 data_clean <- readRDS(
   file = here::here("data/data_merged.rds")
 )
 
-data_filter <- data_clean %>% 
-  filter(FPKM != 0)
-
 #explore data
-mean_uninfected <- data_filter %>%
+
+median <- data_filter %>% 
+  group_by(gene, infected) %>% 
+  summarize(median_FPKM = median(FPKM)) %>% 
+  arrange(-median_FPKM)
+
+median_50 <- data_filter %>% 
+  group_by(gene, infected) %>% 
+  summarize(median_FPKM = median(FPKM)) %>% 
+  arrange(-median_FPKM) %>% 
+  head(50)
+
+median_uninfected <- data_filter %>%
   filter(infected == "Uninfected") %>%
   group_by(gene) %>%
-  summarize(mean_FPKM = mean(FPKM)) %>% 
-  arrange(-mean_FPKM) %>% 
+  summarize(median_FPKM = median(FPKM)) %>% 
+  arrange(-median_FPKM) %>% 
   tail(-4)
 
-mean_infected <- data_filter %>%
+median_infected <- data_filter %>%
   filter(infected == "Infected") %>% 
   group_by(gene) %>%
-  summarize(mean_FPKM = mean(FPKM)) %>% 
-  arrange(-mean_FPKM) %>% 
+  summarize(median_FPKM = median(FPKM)) %>% 
+  arrange(-median_FPKM) %>% 
   tail(-4)
 
 #barplot
@@ -63,10 +75,11 @@ data_clean %>%
   geom_smooth(method = 'lm', se = FALSE)
 
 #heatmap
-genes_of_interest <- c("ENSG00000166710.23", "ENSG00000205542.11", "ENSG00000090382.7",
-                       "ENSG00000117984.15", "ENSG00000136235.17",
-                       "ENSG00000280614.1", "ENSG00000280800.1", "ENSG00000281181.1",
-                       "ENSG00000197746.15", "ENSG00000117984.15")
+genes_of_interest <- c("ENSG00000087086.15", "ENSG00000167996.16", 
+                       "ENSG00000164733.22", "ENSG00000166710.22",
+                       "ENSG00000164733.22", "")
+
+genes_of_interest <- unique(median_50$gene)
 
 heatmap <- data_clean %>%
   filter(gene %in% genes_of_interest) %>%
@@ -80,5 +93,35 @@ heatmap_byinfected <- data_clean %>%
   geom_tile() +
   scale_fill_gradient(low = 'white', high = 'dark blue')
 
+heatmap_50 <- data_clean %>% 
+  filter(gene %in% genes_of_interest) %>% 
+  ggplot(aes(x=samples, y = gene, fill = FPKM)) +
+  geom_tile() +
+  scale_fill_gradient(low = 'white', high = 'dark blue')
+
+heatmap_50_infected <- data_clean %>% 
+  filter(gene %in% genes_of_interest & infected == "Infected") %>% 
+  ggplot(aes(x=samples, y = gene, fill = FPKM)) +
+  geom_tile(show.legend = FALSE) +
+  scale_fill_gradient(low = 'white', high = 'dark blue') +
+  theme_minimal() +
+  xlab("Infected") + ylab("Gene") +
+  scale_x_discrete(guide = guide_axis(n.dodge=2))
+
+heatmap_50_uninfected <- data_clean %>% 
+  filter(gene %in% genes_of_interest & infected == "Uninfected") %>% 
+  ggplot(aes(x=samples, y = gene, fill = FPKM)) +
+  geom_tile() +
+  scale_fill_gradient(low = 'white', high = 'dark blue') +
+  theme_minimal() +
+  theme(axis.title.y = element_blank(),
+        axis.text.y = element_blank()) +
+  xlab("Uninfected")
+
+heatmap <- heatmap_50_infected + heatmap_50_uninfected + 
+  plot_annotation("FPKM Gene Expression by Infected and Uninfected TB Groups (n=44 samples)",
+                  theme=theme(plot.title=element_text(size=18, hjust=0.5)))
+
 #saving plots
+ggsave(heatmap, filename = here::here("output/heatmap.png"), width = 15, height = 9)
 # ggsave(plot, filename="", width= 10, height = 8)

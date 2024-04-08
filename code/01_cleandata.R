@@ -37,6 +37,14 @@ data_merged %>%
 
 #export dataframe
 saveRDS(
+  data_raw,
+  file = here::here("data/data_raw.rds"))
+
+saveRDS(
+  metadata_subset,
+  file = here::here("data/metadata_subset.rds"))
+
+saveRDS(
   data_merged,
   file = here::here("data/data_merged.rds"))
 
