@@ -27,6 +27,14 @@ data_long <- data_raw %>%
 data_merged <- data_long %>% 
   left_join(., metadata_subset, by = c("samples" = "description"))
 
+#explore data
+data_merged %>%
+  group_by(gene, infected) %>% 
+  summarize(mean_FPKM = mean(FPKM),
+            median_FPKM = median(FPKM)) %>% 
+  arrange(-mean_FPKM) %>% 
+  head()
+
 #export dataframe
 saveRDS(
   data_merged,
